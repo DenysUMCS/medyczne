@@ -54,7 +54,7 @@ class admins(ConnectDB):
 class Employers(ConnectDB):
     def showEmployers(self):
         super().Cursor().execute('''SELECT * FROM public."Employers"''')
-        print(super().Cursor().fetchall())
+        return super().Cursor().fetchall()
 
     def count(self):
         countQuery = '''select count(*) from public."Employers"'''
