@@ -2,7 +2,7 @@ import tkinter as tk
 import tksheet
 import DBconnect as db
 from functools import partial
-import calendar
+from tkcalendar import DateEntry
 
 class AdminPanel(tk.Tk):
 
@@ -80,10 +80,11 @@ class addEmp(AdminPanel):
 
         self.lnameLabel = tk.Label(self.frame, text='Last name').grid(row=1, column=0)
         lnameEntry = tk.Entry(self.frame, textvariable = lName).grid(row=1, column=1)
-
+        self.DateLabel = tk.Label(self.frame, text='Birth date').grid(row=2, column=0)
+        dateEntry = DateEntry(self.frame).grid(row=2, column=1)
         def confirm(emp_name, emp_last):
             self.emp.addEmployer(emp_name.get(),emp_last.get())
             self.master.destroy()
 
         validate = partial(confirm, fName, lName)
-        self.button = tk.Button(self.frame, text='Add', command=validate).grid(row=2, column=0, columnspan = 2, rowspan = 1)
+        self.button = tk.Button(self.frame, text='Add', command=validate).grid(row=4, column=0, columnspan = 2, rowspan = 1)
