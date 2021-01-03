@@ -32,7 +32,7 @@ class admins(ConnectDB):
 
     def showAdmins(self):
         super().Cursor().execute('''SELECT * FROM public."Admins"''')
-        print(super().Cursor().fetchall())
+        return super().Cursor().fetchall()
 
     def addAdmin(self,fname,lname,login,password):
         addQuery = '''
@@ -53,11 +53,11 @@ class admins(ConnectDB):
 
 class Employers(ConnectDB):
     def showEmployers(self):
-        super().Cursor().execute('''SELECT * FROM public."Employers"''')
+        super().Cursor().execute('''SELECT * FROM public."Employers" ORDER BY id''')
         return super().Cursor().fetchall()
 
     def count(self):
-        countQuery = '''select count(*) from public."Employers"'''
+        countQuery = '''select id from public."Employers" ORDER BY id DESC LIMIT 1'''
         self.cursor.execute(countQuery)
         x = self.cursor.fetchall()
         return int(x[0][0]) + 1
