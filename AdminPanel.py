@@ -15,6 +15,7 @@ class AdminPanel(tk.Tk):
         self.emp.deleteEmployer(3)
         self.emp.deleteEmployer(4)
         self.sheet = tksheet.Sheet(self.frame)
+        self.sheet.hide("row_index")
         self.title('MedLab Admin Panel (%s %s)' % (fname, lname))
         self.form()
 
@@ -30,7 +31,7 @@ class AdminPanel(tk.Tk):
         self.button = tk.Button(self, text='Add Employer', command=self.addEmployer).grid(row=2, column=1)
         self.sheet = tksheet.Sheet(self)
         self.sheet.grid()
-        self.sheetHeaderList = ['ID', 'Employer First Name', 'Employer Last Name']
+        self.sheetHeaderList = ['ID', 'Employer First Name', 'Employer Last Name', 'Birth date', 'Start date']
         self.sheet.headers([f'{c}' for c in self.sheetHeaderList])
         self.sheet.enable_bindings(("single_select",  # "single_select" or "toggle_select"
                                     "drag_select",  # enables shift click selection as well
@@ -80,11 +81,20 @@ class addEmp(AdminPanel):
 
         self.lnameLabel = tk.Label(self.frame, text='Last name').grid(row=1, column=0)
         lnameEntry = tk.Entry(self.frame, textvariable = lName).grid(row=1, column=1)
-        self.DateLabel = tk.Label(self.frame, text='Birth date').grid(row=2, column=0)
-        dateEntry = DateEntry(self.frame).grid(row=2, column=1)
-        def confirm(emp_name, emp_last):
-            self.emp.addEmployer(emp_name.get(),emp_last.get())
+
+        self.BDateLabel = tk.Label(self.frame, text='Birth date').grid(row=2, column=0)
+        bdateEntry = DateEntry(self.frame, date_pattern='dd/MM/yyyy').grid(row=2, column=1)
+
+        self.BDateLabel = tk.Label(self.frame, text='Start date').grid(row=3, column=0)
+        SdateEntry = DateEntry(self.frame, date_pattern='dd/MM/yyyy').grid(row=3, column=1)
+
+        def confirm(emp_name, emp_last, bdateEntry, sdateEntry ):
+            self.emp.addEmployer(emp_name.get(), #imie
+                                 emp_last.get(), #nazwisko
+                                 bdateEntry.get_date().strftime('%Y-%m-%d'), #urodziny
+                                 sdateEntry.get_date().strftime('%Y-%m-%d')  #data zatrudnienia
+                                 )
             self.master.destroy()
 
-        validate = partial(confirm, fName, lName)
+        validate = partial(confirm, fName, lName, bdateEntry, SdateEntry)
         self.button = tk.Button(self.frame, text='Add', command=validate).grid(row=4, column=0, columnspan = 2, rowspan = 1)

@@ -3,6 +3,7 @@ import DBconnect as db
 from functools import partial
 import AdminPanel as ap
 from tkinter import messagebox
+from tkinter.ttk import *
 
 class LoginForm:
     def __init__(self):
@@ -27,7 +28,7 @@ class LoginForm:
         self.root.geometry('700x400')
         self.root.title('MedLab Login Form')
 
-        self.UserLabel = tk.Label(self.root, text = 'Username').grid(row = 0, column = 0)
+        self.UserLabel = tk.ttk.Label(self.root, text = 'Username').grid(row = 0, column = 0)
         userName = tk.StringVar(self.root)
         usernameEntry = tk.Entry(self.root, textvariable=userName).grid(row=0, column=1)
 

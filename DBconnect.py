@@ -62,10 +62,11 @@ class Employers(ConnectDB):
         x = self.cursor.fetchall()
         return int(x[0][0]) + 1
 
-    def addEmployer(self,fn, ln):
+    def addEmployer(self,fn, ln, bd, sd):
         InsertQuery = '''
-            Insert into public."Employers" (id,first_name, last_name) values (%s,\'%s\',\'%s\');
-        '''%(self.count(),fn, ln)
+            Insert into public."Employers" (id,first_name, last_name, birth_date, start_date) 
+            values (%s,\'%s\',\'%s\',\'%s\',\'%s\');
+        '''%(self.count(),fn, ln, bd, sd)
         self.cursor.execute(InsertQuery)
         self.connection.commit()
 
