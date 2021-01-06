@@ -3,6 +3,8 @@ import tksheet
 import DBconnect as db
 from functools import partial
 from tkcalendar import DateEntry
+from tkinter import messagebox
+
 
 class AdminPanel(tk.Tk):
 
@@ -12,8 +14,6 @@ class AdminPanel(tk.Tk):
         self.frame = tk.Frame(self)
         self.frame.grid_columnconfigure(0, weight=1)
         self.frame.grid_rowconfigure(0, weight=1)
-        self.emp.deleteEmployer(3)
-        self.emp.deleteEmployer(4)
         self.sheet = tksheet.Sheet(self.frame)
         self.sheet.hide("row_index")
         self.title('MedLab Admin Panel (%s %s)' % (fname, lname))
@@ -22,15 +22,32 @@ class AdminPanel(tk.Tk):
     def addEmployer(self):
         x = addEmp()
 
+    def deleteEmployer(self):
+        row = list(set([x[0] for x in self.sheet.get_selected_cells()]))
+        if row != [] :
+            for idx in row :
+                data = self.sheet.get_row_data(idx)
+                MsgBox = tk.messagebox.askquestion('Delete employer',
+                                                   'Are you sure you want to delete %s %s'%(data[1], data[2]),
+                                                   icon='question')
+                if MsgBox == 'yes':
+                    self.emp.deleteEmployer(int(data[0]))
+        else :
+            messagebox.showerror("Error", "Select Employer to delete")
+
     def refreshData(self):
         self.sheet.set_sheet_data( [list(x) for x in self.emp.showEmployers()])
         self.after(500,self.refreshData)
 
     def form(self):
 
-        self.button = tk.Button(self, text='Add Employer', command=self.addEmployer).grid(row=2, column=1)
+        self.f_bot = tk.LabelFrame(self,text="Acttion")
+        self.button = tk.Button(self.f_bot, text='Add Employer', command=self.addEmployer).pack(side = tk.LEFT)
+        self.delete_button = tk.Button(self.f_bot, text='Delete Employer', command=self.deleteEmployer).pack(side = tk.RIGHT)#.grid(row=0, column=1)
+        self.f_bot.pack(side = tk.BOTTOM, fill="both", expand="yes")
+
         self.sheet = tksheet.Sheet(self)
-        self.sheet.grid()
+        self.sheet.pack(side = tk.TOP, fill="both", expand="yes")#.grid(row = 1,column = 1)
         self.sheetHeaderList = ['ID', 'Employer First Name', 'Employer Last Name', 'Birth date', 'Start date']
         self.sheet.headers([f'{c}' for c in self.sheetHeaderList])
         self.sheet.enable_bindings(("single_select",  # "single_select" or "toggle_select"
@@ -58,10 +75,11 @@ class AdminPanel(tk.Tk):
                                     "paste",
                                     "delete",
                                     "undo",
+                                    "get_selection_boxes"
                                     "edit_cell"))
+        self.sheet.extra_bindings([("cell_select", None),])
         self.sheet.set_sheet_data([list(x) for x in self.emp.showEmployers()])
         self.refreshData()
-
 
 class addEmp(AdminPanel):
 
@@ -83,10 +101,11 @@ class addEmp(AdminPanel):
         lnameEntry = tk.Entry(self.frame, textvariable = lName).grid(row=1, column=1)
 
         self.BDateLabel = tk.Label(self.frame, text='Birth date').grid(row=2, column=0)
-        bdateEntry = DateEntry(self.frame, date_pattern='dd/MM/yyyy').grid(row=2, column=1)
-
+        bdateEntry = DateEntry(self.frame, date_pattern='dd/MM/yyyy')
+        bdateEntry.grid(row=2, column=1)
         self.BDateLabel = tk.Label(self.frame, text='Start date').grid(row=3, column=0)
-        SdateEntry = DateEntry(self.frame, date_pattern='dd/MM/yyyy').grid(row=3, column=1)
+        SdateEntry = DateEntry(self.frame, date_pattern='dd/MM/yyyy')
+        SdateEntry.grid(row=3, column=1)
 
         def confirm(emp_name, emp_last, bdateEntry, sdateEntry ):
             self.emp.addEmployer(emp_name.get(), #imie
@@ -97,4 +116,4 @@ class addEmp(AdminPanel):
             self.master.destroy()
 
         validate = partial(confirm, fName, lName, bdateEntry, SdateEntry)
-        self.button = tk.Button(self.frame, text='Add', command=validate).grid(row=4, column=0, columnspan = 2, rowspan = 1)
+        self.confirm_button = tk.Button(self.frame, text='Add', command=validate).grid(row=4, column=0, columnspan = 2, rowspan = 1)
