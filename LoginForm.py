@@ -1,15 +1,32 @@
 import tkinter as tk
-import DBconnect as db
+import DBconnect
 from functools import partial
 import AdminPanel as ap
 from tkinter import messagebox
 from tkinter.ttk import *
+import base64
+from PIL import ImageTk, Image
+
+def imgToBase64(path):
+    image = open(path, 'rb')
+    image_read = image.read()
+    image_64_encode = base64.b64encode(image_read)
+    x = str(image_64_encode.decode('utf-8'))
+    return image_64_encode.decode('utf-8')
+#imgToBase64(path_)
+
 
 class LoginForm:
     def __init__(self):
-        self.database = db.admins()
+        self.database = DBconnect.admins()
         self.root = tk.Tk()
         self.form()
+
+    def __del__(self):
+        print('destroy login form')
+        self.root.destroy()
+
+    def run(self):
         self.root.mainloop()
 
     def loginAction(self, username, password):
@@ -19,14 +36,19 @@ class LoginForm:
             self.root.withdraw()
             if res == [] : res =['Denys', 'Chvyr']
             adminpanel = ap.AdminPanel(res[0], res[1])
-            adminpanel.mainloop()
+            self.__del__()
+            #adminpanel.mainloop()
         else :
             messagebox.showerror("Error", "Incorrect login or password")
 
 
     def form(self):
+
+
         self.root.geometry('700x400')
         self.root.title('MedLab Login Form')
+
+
 
         self.UserLabel = tk.ttk.Label(self.root, text = 'Username').grid(row = 0, column = 0)
         userName = tk.StringVar(self.root)

@@ -1,4 +1,5 @@
 import psycopg2
+import base64
 
 class ConnectDB:
 
@@ -53,8 +54,12 @@ class admins(ConnectDB):
 
 class Employers(ConnectDB):
     def showEmployers(self):
-        super().Cursor().execute('''SELECT * FROM public."Employers" ORDER BY id''')
+        super().Cursor().execute('''SELECT id, first_name, last_name, birth_date, start_date FROM public."Employers" ORDER BY id''')
         return super().Cursor().fetchall()
+
+    def getEmployerPhoto(self, id):
+        super().Cursor().execute('''SELECT encode(photo::bytea, \'base64\') FROM public."Employers" where id = %s'''%(id))
+        return super().Cursor().fetchall()[0][0]
 
     def count(self):
         countQuery = '''select id from public."Employers" ORDER BY id DESC LIMIT 1'''
