@@ -6,6 +6,7 @@ from tkcalendar import DateEntry
 from tkinter import messagebox
 import base64
 from PIL import ImageTk, Image
+import pathlib
 import tkinter.ttk as ttk
 
 
@@ -14,16 +15,24 @@ def imgToBase64(path):
     image = open(path, 'rb')
     image_read = image.read()
     image_64_encode = base64.b64encode(image_read)
-    print(image_64_encode)
-    return image_64_encode
+    return image_64_encode.decode('utf-8')
 
 
+def convertToPNG(path):
+    im_start = Image.open(path)
+    im_end = im_start.resize((200,270), Image.ANTIALIAS)
+    im_end.save('tmp.png')
+    return imgToBase64(str(pathlib.Path(__file__).parent.absolute())+'\\tmp.png')
+
+
+convertToPNG('C:\\Users\\marsk\\PycharmProjectsmedyczne\\medyczne\\default.jpg')
 
 class AdminPanel:
 
     emp = db.Employers()
 
     def __init__(self, fname, lname):
+        self.prev = []
         self.frame = tk.Tk()  # tk.Frame(self.root)
         self.sheet = tksheet.Sheet(self.frame)
         self.sheet.hide("row_index")
@@ -49,7 +58,17 @@ class AdminPanel:
 
     def refreshData(self):
         self.sheet.set_sheet_data( [list(x) for x in self.emp.showEmployers()])
+        self.showEmployer()
         self.frame.after(500,self.refreshData)
+
+    def showEmployer(self):
+
+        selected = list(self.sheet.get_selected_cells())
+        if selected != [] and self.prev != selected:
+            self.idx = int(self.sheet.get_row_data(selected[0][0])[0])
+            print(self.emp.getEmployerPhoto(self.idx).encode('utf-8'))
+            self.img_['data'] = self.emp.getEmployerPhoto(self.idx)
+        self.prev = selected
 
     def form(self):
 
@@ -61,11 +80,12 @@ class AdminPanel:
         self.f_top = tk.LabelFrame(self.frame,width =1300)
         self.sheet = tksheet.Sheet(self.f_top, width =1000, height = 500,)
         self.sheet.pack(side = tk.LEFT, fill="both", expand="yes")
-        self.f_emp = tk.LabelFrame(self.f_top, text = "Employer ediit form", width = 300)
-
-        #self.image1 = Image.open(path_)
+        self.f_emp = tk.LabelFrame(self.f_top, text = "Employer0 ediit form", width = 300)
+        import io
+        #self.image1 = Image.open(io.BytesIO("iVBORw0KGgoAAAANSUhEUgAAACMAAAAjAQMAAAAkFyEaAAAABlBMVEUAAADw0gCjrW2CAAAAI0lEQVQI12NgQAL2////byCFPPihHg9JqmkHGOrxkHj1IgEAZH9nDhQLxPMAAAAASUVORK5CYII="))
         #self.image1 = self.image1.resize((150, 200))
         self.img_ = tk.PhotoImage(master = self.f_emp)
+        self.img_['data'] = "iVBORw0KGgoAAAANSUhEUgAAACMAAAAjAQMAAAAkFyEaAAAABlBMVEUAAADw0gCjrW2CAAAAI0lEQVQI12NgQAL2////byCFPPihHg9JqmkHGOrxkHj1IgEAZH9nDhQLxPMAAAAASUVORK5CYII="
         self.avatar = tk.Canvas(self.f_emp, width=200, height=270, bg='white')
         self.avatar.create_image(0,0, image = self.img_, anchor = "nw")
         self.avatar.grid(row=5, column=0)

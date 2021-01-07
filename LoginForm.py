@@ -3,7 +3,6 @@ import DBconnect
 from functools import partial
 import AdminPanel as ap
 from tkinter import messagebox
-from tkinter.ttk import *
 import base64
 from PIL import ImageTk, Image
 
@@ -13,7 +12,8 @@ def imgToBase64(path):
     image_64_encode = base64.b64encode(image_read)
     x = str(image_64_encode.decode('utf-8'))
     return image_64_encode.decode('utf-8')
-#imgToBase64(path_)
+
+print(ap.convertToPNG('C:\\Users\\marsk\\PycharmProjectsmedyczne\\medyczne\\default.jpg'))
 
 
 class LoginForm:
