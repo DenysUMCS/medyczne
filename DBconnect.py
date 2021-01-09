@@ -1,5 +1,8 @@
 import psycopg2
-import string
+import configparser
+import pathlib
+
+
 '''
 connection = psycopg2.connect(user = 'postgres',
                                           password = 'Prosto12',
@@ -7,15 +10,23 @@ connection = psycopg2.connect(user = 'postgres',
                                           port = '5432',
                                           database = 'postgres')
 '''
-class ConnectDB:
 
+def readConfig( path = 'config.ini'):
+    config = configparser.ConfigParser()
+    config.read(path)
+    return config[config.sections()[0]]
+
+
+class ConnectDB:
     def __init__(self):
+        self.configData = readConfig()
+
         try :
-            self.connection = psycopg2.connect(user = 'ufpokynnqqodbt',
-                                          password = '3972f120bf213762c7fee28ad03c9418526a24378743a9ba33c1df6887a23308',
-                                          host = 'ec2-54-85-80-92.compute-1.amazonaws.com',
-                                          port = '5432',
-                                          database = 'ddkqp48a2bfpml')
+            self.connection = psycopg2.connect(user = self.configData['user'],
+                                          password = self.configData['password'],
+                                          host = self.configData['host'],
+                                          port = self.configData['port'],
+                                          database = self.configData['database'])
             self.cursor = self.connection.cursor()
             self.cursor.execute("SELECT version();")
             record = self.cursor.fetchone()
@@ -40,7 +51,13 @@ class Patient(ConnectDB):
 
     def showAllPatients(self):
         super().Cursor().execute('''SELECT * FROM public."Patients"''')
-        return super().Cursor().fetchall()#database.cursor.getchall()
+        return super().Cursor().fetchall()
+
+    def showDoctorPatients(self, id):
+        super().Cursor().execute('''SELECT * FROM public."Patients" where doctor_id = \'%s\'
+        '''%(id))
+        return super().Cursor().fetchall()[:5]
+
 
 class admins(ConnectDB):
 
