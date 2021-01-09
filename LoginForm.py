@@ -4,7 +4,10 @@ from functools import partial
 import AdminPanel as ap
 from tkinter import messagebox
 import base64
-import re
+
+x = DBconnect.Patient()
+for i in x.showDoctorPatients(1):
+    print(type(i), i)
 
 def imgToBase64(path):
     image = open(path, 'rb')
@@ -26,8 +29,8 @@ class LoginForm:
         self.root.mainloop()
 
     def SQLinjectDetect(self, username, password):
-
         pass
+
     def loginAction(self, username, password):
         res = self.database.Login(username.get(), password.get())
         print(username.get(), password.get())

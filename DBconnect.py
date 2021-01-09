@@ -3,14 +3,6 @@ import configparser
 import pathlib
 
 
-'''
-connection = psycopg2.connect(user = 'postgres',
-                                          password = 'Prosto12',
-                                          host = '127.0.0.1',
-                                          port = '5432',
-                                          database = 'postgres')
-'''
-
 def readConfig( path = 'config.ini'):
     config = configparser.ConfigParser()
     config.read(path)
@@ -56,7 +48,7 @@ class Patient(ConnectDB):
     def showDoctorPatients(self, id):
         super().Cursor().execute('''SELECT * FROM public."Patients" where doctor_id = \'%s\'
         '''%(id))
-        return super().Cursor().fetchall()[:5]
+        return super().Cursor().fetchall()[0]
 
 
 class admins(ConnectDB):
@@ -110,19 +102,16 @@ class Employers(ConnectDB):
         x = self.cursor.fetchall()
         return int(x[0][0]) + 1
 
-    def addEmployer(self,fn, ln, bd, sd):
-        InsertQuery = '''
-            Insert into public."Employers" (id,first_name, last_name, birth_date, start_date) 
-            values (%s,\'%s\',\'%s\',\'%s\',\'%s\');
-        '''%(self.count(),fn, ln, bd, sd)
-        self.cursor.execute(InsertQuery)
-        self.connection.commit()
-
-    def addEmployer(self,fn, ln, bd, sd, photo):
+    def addEmployer(self,fn, ln, bd, sd, photo = ''):
         InsertQuery = '''
             Insert into public."Employers" (id,first_name, last_name, birth_date, start_date, photo) 
             values (%s,\'%s\',\'%s\',\'%s\',\'%s\', \'%s\');
         '''%(self.count(),fn, ln, bd, sd, photo)
+        if photo == '':
+            InsertQuery = '''
+                        Insert into public."Employers" (id,first_name, last_name, birth_date, start_date) 
+                        values (%s,\'%s\',\'%s\',\'%s\',\'%s\');
+                    ''' % (self.count(), fn, ln, bd, sd)
         self.cursor.execute(InsertQuery)
         self.connection.commit()
 
