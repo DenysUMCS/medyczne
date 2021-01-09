@@ -7,7 +7,7 @@ from tkinter import messagebox
 import base64
 from PIL import ImageTk, Image
 import pathlib
-import tkinter.ttk as ttk
+from tkinter import filedialog as fd
 
 
 
@@ -24,8 +24,6 @@ def convertToPNG(path):
     im_end.save('tmp.png')
     return imgToBase64(str(pathlib.Path(__file__).parent.absolute())+'\\tmp.png')
 
-
-convertToPNG('C:\\Users\\marsk\\PycharmProjectsmedyczne\\medyczne\\default.jpg')
 
 class AdminPanel:
 
@@ -64,11 +62,57 @@ class AdminPanel:
     def showEmployer(self):
 
         selected = list(self.sheet.get_selected_cells())
-        if selected != [] and self.prev != selected:
+        if (selected != [] and self.prev == []) or (selected != [] and self.prev[0][0] != selected[0][0]) :
+            print(selected)
             self.idx = int(self.sheet.get_row_data(selected[0][0])[0])
-            print(self.emp.getEmployerPhoto(self.idx).encode('utf-8'))
+            self.emp_data = self.emp.getEmployerData(self.idx)[:5]
             self.img_['data'] = self.emp.getEmployerPhoto(self.idx)
+
+            self.lnameEntry.delete(0, tk.END)
+            self.lnameEntry.insert(0, self.emp_data[2])
+
+            self.fnameEntry.delete(0, tk.END)
+            self.fnameEntry.insert(0, self.emp_data[1])
+
+            #self.fnameEntry['text'] =
         self.prev = selected
+
+    def getPhoto(self):
+        file_name = fd.askopenfilenames()
+        self.img_['data'] = convertToPNG(file_name[0])
+        print(self.img_['data'])
+        return convertToPNG(file_name[0])
+
+    def editEmployerForm(self):
+        self.emp_photo = tk.LabelFrame(self.f_emp)
+        self.img_ = tk.PhotoImage(master=self.emp_photo)
+        self.avatar = tk.Canvas(self.emp_photo, width=200, height=270, bg='white')
+        self.avatar.create_image(0, 0, image=self.img_, anchor="nw")
+        self.avatar.pack(side = tk.TOP)
+        self.emp_edit_confirm = tk.Button(self.emp_photo, text='Download new photo', command = self.getPhoto).pack(side=tk.BOTTOM)
+        self.emp_photo.pack(side = tk.TOP)
+
+        self.edit_info = tk.LabelFrame(self.f_emp)
+        self.lName = tk.StringVar(self.edit_info)
+        self.fName = tk.StringVar(self.edit_info)
+        self.fnameLabel = tk.Label(self.edit_info, text='First name').grid(row=1, column=0, ipadx=10, ipady=2)
+        self.fnameEntry = tk.Entry(self.edit_info, textvariable=self.fName)
+        self.fnameEntry.grid(row=1, column=1, ipadx=10, ipady=2)
+
+        self.lnameLabel = tk.Label(self.edit_info, text='Last name').grid(row=2, column=0)
+        self.lnameEntry = tk.Entry(self.edit_info, textvariable=self.lName)
+        self.lnameEntry.grid(row=2, column=1)
+
+        self.BDateLabel = tk.Label(self.edit_info, text='Birth date').grid(row=3, column=0)
+        self.bdateEntry = DateEntry(self.edit_info, date_pattern='dd/MM/yyyy')
+        self.bdateEntry.grid(row=3, column=1)
+        self.BDateLabel = tk.Label(self.edit_info, text='Start date').grid(row=4, column=0)
+        self.SdateEntry = DateEntry(self.edit_info, date_pattern='dd/MM/yyyy')
+        self.SdateEntry.grid(row=4, column=1)
+        self.edit_info.pack(side = tk.BOTTOM)
+        #
+
+
 
     def form(self):
 
@@ -77,37 +121,16 @@ class AdminPanel:
         self.delete_button = tk.Button(self.f_bot, text='Delete Employer', command=self.deleteEmployer).pack(side = tk.RIGHT)#.grid(row=0, column=1)
         self.f_bot.pack(side = tk.BOTTOM, fill="both")
 
-        self.f_top = tk.LabelFrame(self.frame,width =1300)
+        self.f_top = tk.LabelFrame(self.frame, width =1300)
         self.sheet = tksheet.Sheet(self.f_top, width =1000, height = 500,)
         self.sheet.pack(side = tk.LEFT, fill="both", expand="yes")
-        self.f_emp = tk.LabelFrame(self.f_top, text = "Employer0 ediit form", width = 300)
-        import io
-        #self.image1 = Image.open(io.BytesIO("iVBORw0KGgoAAAANSUhEUgAAACMAAAAjAQMAAAAkFyEaAAAABlBMVEUAAADw0gCjrW2CAAAAI0lEQVQI12NgQAL2////byCFPPihHg9JqmkHGOrxkHj1IgEAZH9nDhQLxPMAAAAASUVORK5CYII="))
-        #self.image1 = self.image1.resize((150, 200))
-        self.img_ = tk.PhotoImage(master = self.f_emp)
-        self.img_['data'] = "iVBORw0KGgoAAAANSUhEUgAAACMAAAAjAQMAAAAkFyEaAAAABlBMVEUAAADw0gCjrW2CAAAAI0lEQVQI12NgQAL2////byCFPPihHg9JqmkHGOrxkHj1IgEAZH9nDhQLxPMAAAAASUVORK5CYII="
-        self.avatar = tk.Canvas(self.f_emp, width=200, height=270, bg='white')
-        self.avatar.create_image(0,0, image = self.img_, anchor = "nw")
-        self.avatar.grid(row=5, column=0)
 
-        lName = tk.StringVar(self.f_emp)
-        fName = tk.StringVar(self.f_emp)
-        self.fnameLabel = tk.Label(self.f_emp, text='First name').grid(row=0, column=0, ipadx = 10, ipady = 2)
-        fnameEntry = tk.Entry(self.f_emp, textvariable=fName).grid(row=0, column=1, ipadx = 10, ipady = 2)
 
-        self.lnameLabel = tk.Label(self.f_emp, text='Last name').grid(row=1, column=0)
-        lnameEntry = tk.Entry(self.f_emp, textvariable=lName).grid(row=1, column=1)
+        self.f_emp = tk.LabelFrame(self.f_top, text = "Employer ediit form", width = 300)
+        self.editEmployerForm()
+        self.f_emp.pack(side=tk.RIGHT, fill="both")
 
-        self.BDateLabel = tk.Label(self.f_emp, text='Birth date').grid(row=2, column=0)
-        bdateEntry = DateEntry(self.f_emp, date_pattern='dd/MM/yyyy')
-        bdateEntry.grid(row=2, column=1)
-        self.BDateLabel = tk.Label(self.f_emp, text='Start date').grid(row=3, column=0)
-        SdateEntry = DateEntry(self.f_emp, date_pattern='dd/MM/yyyy')
-        SdateEntry.grid(row=3, column=1)
-        #self.emp_edit_confirm = tk.Button(self.f_emp, text='Confirm', command=self.addEmployer).pack(side=tk.BOTTOM)
-        self.f_emp.pack(side = tk.RIGHT, fill="both")
         self.f_top.pack(side=tk.TOP, fill="both", expand="yes")
-
         self.sheetHeaderList = ['ID', 'Employer First Name', 'Employer Last Name', 'Birth date', 'Start date']
         self.sheet.headers([f'{c}' for c in self.sheetHeaderList])
         self.sheet.enable_bindings(("single_select",  # "single_select" or "toggle_select"

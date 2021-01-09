@@ -4,7 +4,7 @@ from functools import partial
 import AdminPanel as ap
 from tkinter import messagebox
 import base64
-from PIL import ImageTk, Image
+import re
 
 def imgToBase64(path):
     image = open(path, 'rb')
@@ -12,9 +12,6 @@ def imgToBase64(path):
     image_64_encode = base64.b64encode(image_read)
     x = str(image_64_encode.decode('utf-8'))
     return image_64_encode.decode('utf-8')
-
-print(ap.convertToPNG('C:\\Users\\marsk\\PycharmProjectsmedyczne\\medyczne\\default.jpg'))
-
 
 class LoginForm:
     def __init__(self):
@@ -29,6 +26,9 @@ class LoginForm:
     def run(self):
         self.root.mainloop()
 
+    def SQLinjectDetect(self, username, password):
+
+        pass
     def loginAction(self, username, password):
         res = self.database.Login(username.get(), password.get())
         print(username.get(), password.get())

@@ -1,15 +1,21 @@
 import psycopg2
 import string
-
-class ConnectDB:
-
-    def __init__(self):
-        try :
-            self.connection = psycopg2.connect(user = 'postgres',
+'''
+connection = psycopg2.connect(user = 'postgres',
                                           password = 'Prosto12',
                                           host = '127.0.0.1',
                                           port = '5432',
                                           database = 'postgres')
+'''
+class ConnectDB:
+
+    def __init__(self):
+        try :
+            self.connection = psycopg2.connect(user = 'ufpokynnqqodbt',
+                                          password = '3972f120bf213762c7fee28ad03c9418526a24378743a9ba33c1df6887a23308',
+                                          host = 'ec2-54-85-80-92.compute-1.amazonaws.com',
+                                          port = '5432',
+                                          database = 'ddkqp48a2bfpml')
             self.cursor = self.connection.cursor()
             self.cursor.execute("SELECT version();")
             record = self.cursor.fetchone()
@@ -61,6 +67,10 @@ class Employers(ConnectDB):
         super().Cursor().execute('''SELECT encode(photo::bytea, \'base64\') FROM public."Employers" where id = %s'''%(id))
         return super().Cursor().fetchall()[0][0].translate({ord(c): None for c in string.whitespace})
 
+    def getEmployerData(self,id):
+        super().Cursor().execute(
+            '''SELECT * FROM public."Employers" where id = %s''' % (id))
+        return super().Cursor().fetchall()[0]
     def count(self):
         countQuery = '''select id from public."Employers" ORDER BY id DESC LIMIT 1'''
         self.cursor.execute(countQuery)
