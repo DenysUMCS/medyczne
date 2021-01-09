@@ -20,7 +20,6 @@ class LoginForm:
         self.form()
 
     def __del__(self):
-        print('destroy login form')
         self.root.destroy()
 
     def run(self):
@@ -35,8 +34,10 @@ class LoginForm:
         if res != [] or username.get() == '':
             self.root.withdraw()
             if res == [] : res =['Denys', 'Chvyr']
+            self.database.close()
             adminpanel = ap.AdminPanel(res[0], res[1])
-            self.__del__()
+            self.root.quit()
+
             #adminpanel.mainloop()
         else :
             messagebox.showerror("Error", "Incorrect login or password")

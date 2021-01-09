@@ -35,8 +35,20 @@ class ConnectDB:
     def Connection(self):
         return self.connection
 
+class Patient(ConnectDB):
+
+
+    def showAllPatients(self):
+        super().Cursor().execute('''SELECT * FROM public."Patients"''')
+        return super().Cursor().fetchall()#database.cursor.getchall()
+
 class admins(ConnectDB):
 
+    def close(self):
+        if super().Connection():
+             super().Cursor().close()
+             super().Connection().close()
+             print("PostgreSQL connection is closed")
     def showAdmins(self):
         super().Cursor().execute('''SELECT * FROM public."Admins"''')
         return super().Cursor().fetchall()
@@ -65,13 +77,14 @@ class Employers(ConnectDB):
 
     def getEmployerPhoto(self, id):
         super().Cursor().execute(
-            '''SELECT photo FROM public."Employers" where id = %s''' % (id))
-        self.photo = super().Cursor().fetchall()[0][0].tobytes()
+            '''SELECT encode(photo::bytea, 'base64') FROM public."Employers" where id = %s''' % (id))
+        self.photo = super().Cursor().fetchall()[0][0]
         return self.photo
 
     def getEmployerData(self,id):
         super().Cursor().execute(
-            '''SELECT * FROM public."Employers" where id = %s''' % (id))
+            '''SELECT id, first_name, last_name, birth_date, start_date, encode(photo::bytea, 'base64') 
+            FROM public."Employers" where id = %s''' % (id))
         return super().Cursor().fetchall()[0]
 
     def count(self):
@@ -85,6 +98,14 @@ class Employers(ConnectDB):
             Insert into public."Employers" (id,first_name, last_name, birth_date, start_date) 
             values (%s,\'%s\',\'%s\',\'%s\',\'%s\');
         '''%(self.count(),fn, ln, bd, sd)
+        self.cursor.execute(InsertQuery)
+        self.connection.commit()
+
+    def addEmployer(self,fn, ln, bd, sd, photo):
+        InsertQuery = '''
+            Insert into public."Employers" (id,first_name, last_name, birth_date, start_date, photo) 
+            values (%s,\'%s\',\'%s\',\'%s\',\'%s\', \'%s\');
+        '''%(self.count(),fn, ln, bd, sd, photo)
         self.cursor.execute(InsertQuery)
         self.connection.commit()
 

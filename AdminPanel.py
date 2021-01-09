@@ -5,10 +5,10 @@ from functools import partial
 from tkcalendar import DateEntry
 from tkinter import messagebox
 import base64
-from PIL import ImageTk, Image
+from PIL import Image
 import pathlib
 from tkinter import filedialog as fd
-
+import string
 
 
 def imgToBase64(path):
@@ -40,7 +40,11 @@ class AdminPanel:
         self.frame.mainloop()
 
     def addEmployer(self):
-        x = addEmp()
+        app = addEmp(None, self.emp)
+        app.title = "Add employer"
+        app.mainloop()
+        self.sheet.set_sheet_data([list(x) for x in self.emp.showEmployers()])
+        self.frame.update()
 
     def deleteEmployer(self):
         row = list(set([x[0] for x in self.sheet.get_selected_cells()]))
@@ -52,11 +56,13 @@ class AdminPanel:
                                                    icon='question')
                 if MsgBox == 'yes':
                     self.emp.deleteEmployer(int(data[0]))
+                    self.sheet.set_sheet_data([list(x) for x in self.emp.showEmployers()])
+                    self.frame.update()
         else :
             messagebox.showerror("Error", "Select Employer to delete")
 
     def refreshData(self):
-        self.sheet.set_sheet_data( [list(x) for x in self.emp.showEmployers()])
+        #self.sheet.set_sheet_data( [list(x) for x in self.emp.showEmployers()])
         self.showEmployer()
         self.frame.after(500,self.refreshData)
 
@@ -66,8 +72,7 @@ class AdminPanel:
         if (selected != [] and self.prev == []) or (selected != [] and self.prev[0][0] != selected[0][0]) :
             self.idx = int(self.sheet.get_row_data(selected[0][0])[0])
             self.emp_data = self.emp.getEmployerData(self.idx)
-            print(self.emp_data)
-            self.img_['data'] = self.emp_data[5].tobytes()
+            self.img_['data'] = base64.b64decode(self.emp_data[5].translate({ord(c): None for c in string.whitespace}))
             self.lnameEntry.delete(0, tk.END)
             self.lnameEntry.insert(0, self.emp_data[2])
             self.fnameEntry.delete(0, tk.END)
@@ -84,8 +89,6 @@ class AdminPanel:
 
     def confirm(self, id, emp_name, emp_last, bdateEntry, sdateEntry):
         id = int(self.sheet.get_row_data( list(self.sheet.get_selected_cells())[0][0])[0])
-        print(self.img_["data"])
-        print(bdateEntry.get_date().strftime('%Y-%m-%d'))
         self.emp.updateEmployer( id,
                              emp_name.get(),  # imie
                              emp_last.get(),  # nazwisko
@@ -93,6 +96,8 @@ class AdminPanel:
                              sdateEntry.get_date().strftime('%Y-%m-%d'), # data zatrudnienia
                              self.img_["data"].decode('utf-8')
                              )
+        self.sheet.set_sheet_data([list(x) for x in self.emp.showEmployers()])
+        self.frame.update()
 
     def editEmployerForm(self):
         self.emp_photo = tk.LabelFrame(self.f_emp)
@@ -127,24 +132,31 @@ class AdminPanel:
         self.emp_edit_confirm = tk.Button(self.f_emp, text='Confirm change', command=self.validate).grid(row = 2, column = 0)
 
     def form(self):
-
+        self.x = db.Patient()
+        print(self.x.showAllPatients())
         self.f_bot = tk.LabelFrame(self.frame,text="Acttion")
         self.button = tk.Button(self.f_bot, text='Add Employer', command=self.addEmployer).pack(side = tk.LEFT)
         self.delete_button = tk.Button(self.f_bot, text='Delete Employer', command=self.deleteEmployer).pack(side = tk.RIGHT)#.grid(row=0, column=1)
         self.f_bot.pack(side = tk.BOTTOM, fill="both")
 
         self.f_top = tk.LabelFrame(self.frame, width =1300)
-        self.sheet = tksheet.Sheet(self.f_top, width =1000, height = 500,)
-        self.sheet.pack(side = tk.LEFT, fill="both", expand="yes")
+        self.sheet_frame = tk.LabelFrame(self.f_top)
+        self.sheet, self.sheet_pattient = tksheet.Sheet(self.sheet_frame, width =700), tksheet.Sheet(self.sheet_frame, width =700)
+        self.sheet.pack(side = tk.TOP,fill="both", expand="yes")
+        self.sheet_pattient.pack(side = tk.BOTTOM, fill="both", expand="yes")
 
+
+        self.sheet_frame.pack(side = tk.LEFT,fill="both", expand="yes")
 
         self.f_emp = tk.LabelFrame(self.f_top, text = "Employer ediit form", width = 300)
         self.editEmployerForm()
         self.f_emp.pack(side=tk.RIGHT, fill="both")
 
         self.f_top.pack(side=tk.TOP, fill="both", expand="yes")
-        self.sheetHeaderList = ['ID', 'Employer First Name', 'Employer Last Name', 'Birth date', 'Start date']
-        self.sheet.headers([f'{c}' for c in self.sheetHeaderList])
+        self.sheetEmpHeaderList = ['ID', 'Employer First Name', 'Employer Last Name', 'Birth date', 'Start date']
+        self.sheetPattientHeaderList = ['First Name', 'Last Name', 'Doctor', 'Visit date', 'Time']
+        self.sheet.headers([f'{c}' for c in self.sheetEmpHeaderList])
+        self.sheet_pattient.headers([f'{c}' for c in self.sheetPattientHeaderList])
         self.sheet.enable_bindings(("single_select",  # "single_select" or "toggle_select"
                                     "drag_select",  # enables shift click selection as well
                                     "column_drag_and_drop",
@@ -171,47 +183,76 @@ class AdminPanel:
         self.sheet.set_sheet_data([list(x) for x in self.emp.showEmployers()])
         self.refreshData()
 
-class addEmp:
 
-    def __init__(self):
-        self.master = tk.Tk()
-        self.frame = tk.Frame(self.master)
-        self.emp = db.Employers()
+
+class addEmp(tk.Tk):
+    def __init__(self, parrent, db_):
+        tk.Tk.__init__(self, parrent)
+        self.parrent = parrent
+        self.patrial_ = patrial_
+        self.frame = tk.Frame(self)
+        self.emp = db_
         self.form_()
-        self.frame.pack()
-        self.master.mainloop()
+
+
+    def __del__(self):
+        print('bye')
+
+    def getPhoto(self):
+        file_name = fd.askopenfilenames()
+        self.img_['data'] = convertToPNG(file_name[0])
+        print(self.img_['data'])
+        return convertToPNG(file_name[0])
+
+    def confirm(self, emp_name, emp_last, bdateEntry, sdateEntry, img_):
+        if self.img_["data"] != '':
+
+            self.emp.addEmployer(
+                                 emp_name.get(),  # imie
+                                 emp_last.get(),  # nazwisko
+                                 bdateEntry.get_date().strftime('%Y-%m-%d'),  # urodziny
+                                 sdateEntry.get_date().strftime('%Y-%m-%d'), # data zatrudnienia
+                                 img_.decode('utf-8')
+                                 )
+        else:
+            self.emp.addEmployer(emp_name.get(),  # imie
+                                 emp_last.get(),  # nazwisko
+                                 bdateEntry.get_date().strftime('%Y-%m-%d'),  # urodziny
+                                 sdateEntry.get_date().strftime('%Y-%m-%d'),
+                                 self.img_["data"]
+                                 )
+        self.quit()
+        self.destroy()
 
     def form_(self):
-        self.master.title('MedLab Admin Panel (Add new employer)')
-        lName = tk.StringVar(self.frame)
-        fName = tk.StringVar(self.frame)
-        self.image = ImageTk.PhotoImage( file = 'medyczne\default.jpg')
-        self.img_ = tk.PhotoImage(file = self.image )
-        self.avatar = tk.Canvas(self.frame, width=200, height=270, bg='white')
+        self.emp_photo = tk.LabelFrame(self)###
+        self.img_ = tk.PhotoImage(master=self.emp_photo)
+        self.avatar = tk.Canvas(self.emp_photo, width=200, height=270, bg='white')
         self.avatar.create_image(0, 0, image=self.img_, anchor="nw")
-        self.img_ = tk.PhotoImage(master = self.frame)
-        self.avatar.grid(row=5, column=0)
+        self.avatar.pack(side=tk.TOP)
+        self.emp_edit_confirm = tk.Button(self.emp_photo, text='Download new photo', command=self.getPhoto).pack(
+            side=tk.BOTTOM)
+        self.emp_photo.grid(row=0, column=0)
 
-        self.fnameLabel = tk.Label(self.frame, text='First name').grid(row=0, column=0)
-        fnameEntry = tk.Entry(self.frame, textvariable = fName).grid(row=0, column=1)
+        self.edit_info = tk.LabelFrame(self) ###########
 
-        self.lnameLabel = tk.Label(self.frame, text='Last name').grid(row=1, column=0)
-        lnameEntry = tk.Entry(self.frame, textvariable = lName).grid(row=1, column=1)
+        self.lName = tk.StringVar(self.edit_info)
+        self.fName = tk.StringVar(self.edit_info)
+        self.fnameLabel = tk.Label(self.edit_info, text='First name').grid(row=0, column=0, ipadx=10, ipady=2)
+        self.fnameEntry = tk.Entry(self.edit_info, textvariable=self.fName)
+        self.fnameEntry.grid(row=0, column=1, ipadx=10, ipady=2)
 
-        self.BDateLabel = tk.Label(self.frame, text='Birth date').grid(row=2, column=0)
-        bdateEntry = DateEntry(self.frame, date_pattern='dd/MM/yyyy')
-        bdateEntry.grid(row=2, column=1)
-        self.BDateLabel = tk.Label(self.frame, text='Start date').grid(row=3, column=0)
-        SdateEntry = DateEntry(self.frame, date_pattern='dd/MM/yyyy')
-        SdateEntry.grid(row=3, column=1)
+        self.lnameLabel = tk.Label(self.edit_info, text='Last name').grid(row=1, column=0)
+        self.lnameEntry = tk.Entry(self.edit_info, textvariable=self.lName)
+        self.lnameEntry.grid(row=1, column=1)
 
-        def confirm(emp_name, emp_last, bdateEntry, sdateEntry ):
-            self.emp.addEmployer(emp_name.get(), #imie
-                                 emp_last.get(), #nazwisko
-                                 bdateEntry.get_date().strftime('%Y-%m-%d'), #urodziny
-                                 sdateEntry.get_date().strftime('%Y-%m-%d')  #data zatrudnienia
-                                 )
-            self.master.destroy()
+        self.BDateLabel = tk.Label(self.edit_info, text='Birth date').grid(row=2, column=0)
+        self.bdateEntry = DateEntry(self.edit_info, date_pattern='dd/MM/yyyy')
+        self.bdateEntry.grid(row=2, column=1)
+        self.SDateLabel = tk.Label(self.edit_info, text='Start date').grid(row=3, column=0)
+        self.SdateEntry = DateEntry(self.edit_info, date_pattern='dd/MM/yyyy')
+        self.SdateEntry.grid(row=3, column=1)
+        self.edit_info.grid(row=1, column=0)
 
-        validate = partial(confirm, fName, lName, bdateEntry, SdateEntry)
-        self.confirm_button = tk.Button(self.frame, text='Add', command=validate).grid(row=4, column=0, columnspan = 2, rowspan = 1)
+        self.validate = partial(self.confirm, self.fName, self.lName, self.bdateEntry, self.SdateEntry, self.img_)
+        self.emp_edit_confirm = tk.Button(self, text='Confirm change', command=self.validate).grid(row=2, column=0)
