@@ -31,6 +31,7 @@ class AdminPanel:
 
     def __init__(self, fname, lname):
         self.prev = []
+        self.idx = -1
         self.frame = tk.Tk()  # tk.Frame(self.root)
         self.sheet = tksheet.Sheet(self.frame)
         self.sheet.hide("row_index")
@@ -63,18 +64,16 @@ class AdminPanel:
 
         selected = list(self.sheet.get_selected_cells())
         if (selected != [] and self.prev == []) or (selected != [] and self.prev[0][0] != selected[0][0]) :
-            print(selected)
             self.idx = int(self.sheet.get_row_data(selected[0][0])[0])
-            self.emp_data = self.emp.getEmployerData(self.idx)[:5]
-            self.img_['data'] = self.emp.getEmployerPhoto(self.idx)
-
+            self.emp_data = self.emp.getEmployerData(self.idx)
+            print(self.emp_data)
+            self.img_['data'] = self.emp_data[5].tobytes()
             self.lnameEntry.delete(0, tk.END)
             self.lnameEntry.insert(0, self.emp_data[2])
-
             self.fnameEntry.delete(0, tk.END)
             self.fnameEntry.insert(0, self.emp_data[1])
-
-            #self.fnameEntry['text'] =
+            self.bdateEntry.set_date(self.emp_data[3])
+            self.SdateEntry.set_date(self.emp_data[4])
         self.prev = selected
 
     def getPhoto(self):
@@ -83,6 +82,18 @@ class AdminPanel:
         print(self.img_['data'])
         return convertToPNG(file_name[0])
 
+    def confirm(self, id, emp_name, emp_last, bdateEntry, sdateEntry):
+        id = int(self.sheet.get_row_data( list(self.sheet.get_selected_cells())[0][0])[0])
+        print(self.img_["data"])
+        print(bdateEntry.get_date().strftime('%Y-%m-%d'))
+        self.emp.updateEmployer( id,
+                             emp_name.get(),  # imie
+                             emp_last.get(),  # nazwisko
+                             bdateEntry.get_date().strftime('%Y-%m-%d'),  # urodziny
+                             sdateEntry.get_date().strftime('%Y-%m-%d'), # data zatrudnienia
+                             self.img_["data"].decode('utf-8')
+                             )
+
     def editEmployerForm(self):
         self.emp_photo = tk.LabelFrame(self.f_emp)
         self.img_ = tk.PhotoImage(master=self.emp_photo)
@@ -90,29 +101,30 @@ class AdminPanel:
         self.avatar.create_image(0, 0, image=self.img_, anchor="nw")
         self.avatar.pack(side = tk.TOP)
         self.emp_edit_confirm = tk.Button(self.emp_photo, text='Download new photo', command = self.getPhoto).pack(side=tk.BOTTOM)
-        self.emp_photo.pack(side = tk.TOP)
+        self.emp_photo.grid(row = 0, column = 0)
 
         self.edit_info = tk.LabelFrame(self.f_emp)
         self.lName = tk.StringVar(self.edit_info)
         self.fName = tk.StringVar(self.edit_info)
-        self.fnameLabel = tk.Label(self.edit_info, text='First name').grid(row=1, column=0, ipadx=10, ipady=2)
+        self.fnameLabel = tk.Label(self.edit_info, text='First name').grid(row=0, column=0, ipadx=10, ipady=2)
         self.fnameEntry = tk.Entry(self.edit_info, textvariable=self.fName)
-        self.fnameEntry.grid(row=1, column=1, ipadx=10, ipady=2)
+        self.fnameEntry.grid(row=0, column=1, ipadx=10, ipady=2)
 
-        self.lnameLabel = tk.Label(self.edit_info, text='Last name').grid(row=2, column=0)
+        self.lnameLabel = tk.Label(self.edit_info, text='Last name').grid(row=1, column=0)
         self.lnameEntry = tk.Entry(self.edit_info, textvariable=self.lName)
-        self.lnameEntry.grid(row=2, column=1)
+        self.lnameEntry.grid(row=1, column=1)
 
-        self.BDateLabel = tk.Label(self.edit_info, text='Birth date').grid(row=3, column=0)
+        self.BDateLabel = tk.Label(self.edit_info, text='Birth date').grid(row=2, column=0)
         self.bdateEntry = DateEntry(self.edit_info, date_pattern='dd/MM/yyyy')
-        self.bdateEntry.grid(row=3, column=1)
-        self.BDateLabel = tk.Label(self.edit_info, text='Start date').grid(row=4, column=0)
+        self.bdateEntry.grid(row=2, column=1)
+        self.SDateLabel = tk.Label(self.edit_info, text='Start date').grid(row=3, column=0)
         self.SdateEntry = DateEntry(self.edit_info, date_pattern='dd/MM/yyyy')
-        self.SdateEntry.grid(row=4, column=1)
-        self.edit_info.pack(side = tk.BOTTOM)
-        #
+        self.SdateEntry.grid(row=3, column=1)
+        self.edit_info.grid(row = 1, column = 0)
 
+        self.validate = partial(self.confirm, self.idx, self.fName, self.lName, self.bdateEntry, self.SdateEntry)
 
+        self.emp_edit_confirm = tk.Button(self.f_emp, text='Confirm change', command=self.validate).grid(row = 2, column = 0)
 
     def form(self):
 

@@ -64,13 +64,16 @@ class Employers(ConnectDB):
         return super().Cursor().fetchall()
 
     def getEmployerPhoto(self, id):
-        super().Cursor().execute('''SELECT encode(photo::bytea, \'base64\') FROM public."Employers" where id = %s'''%(id))
-        return super().Cursor().fetchall()[0][0].translate({ord(c): None for c in string.whitespace})
+        super().Cursor().execute(
+            '''SELECT photo FROM public."Employers" where id = %s''' % (id))
+        self.photo = super().Cursor().fetchall()[0][0].tobytes()
+        return self.photo
 
     def getEmployerData(self,id):
         super().Cursor().execute(
             '''SELECT * FROM public."Employers" where id = %s''' % (id))
         return super().Cursor().fetchall()[0]
+
     def count(self):
         countQuery = '''select id from public."Employers" ORDER BY id DESC LIMIT 1'''
         self.cursor.execute(countQuery)
@@ -85,10 +88,12 @@ class Employers(ConnectDB):
         self.cursor.execute(InsertQuery)
         self.connection.commit()
 
-    def updateEmployer(self,id,fn, ln):
+    def updateEmployer(self,id,fn, ln, bd, sd, photo):
         updateQuery = '''
-            update public."Employers" set first_name = \'%s\', last_name = \'%s\' where id = %s;
-        '''%(fn, ln, id)
+            update public."Employers" 
+            set first_name = \'%s\', last_name = \'%s\', birth_date = \'%s\', start_date = \'%s\', photo = \'%s\'
+            where id = %s;
+        '''%(fn, ln, bd, sd, photo, id)
         self.cursor.execute(updateQuery)
         self.connection.commit()
 
