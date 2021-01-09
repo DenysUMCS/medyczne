@@ -8,7 +8,6 @@ connection = psycopg2.connect(user = 'postgres',
                                           database = 'postgres')
 '''
 class ConnectDB:
-
     def __init__(self):
         try :
             self.connection = psycopg2.connect(user = 'ufpokynnqqodbt',
