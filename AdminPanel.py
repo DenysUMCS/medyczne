@@ -173,10 +173,8 @@ class addEmp:
         self.master.title('MedLab Admin Panel (Add new employer)')
         lName = tk.StringVar(self.frame)
         fName = tk.StringVar(self.frame)
-        import pathlib
-        #self.df = open("default_img").read().strip('\n')
         self.image = ImageTk.PhotoImage( file = 'medyczne\default.jpg')
-        self.img_ = tk.PhotoImage(file = self.image )# file = str(pathlib.Path(__file__).parent.absolute()) + '/medyczne/man2.png' )
+        self.img_ = tk.PhotoImage(file = self.image )
         self.avatar = tk.Canvas(self.frame, width=200, height=270, bg='white')
         self.avatar.create_image(0, 0, image=self.img_, anchor="nw")
         self.img_ = tk.PhotoImage(master = self.frame)
