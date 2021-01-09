@@ -1,0 +1,7 @@
+Babel==2.9.0
+Pillow==8.1.0
+psycopg2==2.8.6
+pytz==2020.5
+tk==0.1.0
+tkcalendar==1.6.1
+tksheet==4.9.96
