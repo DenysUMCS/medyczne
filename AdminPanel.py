@@ -29,9 +29,9 @@ def convertToPNG(path):
 
 class AdminPanel:
 
-    def __init__(self, fname, lname):
-        self.emp = db.Employers()
-        self.pat = db.Patient()
+    def __init__(self, fname, lname, db_class):
+        self.emp = db.Employers(db_class.Cursor(), db_class.Connection())
+        self.pat = db.Patient(db_class.Cursor())
         self.prev = []
         self.idx = -1
         self.fontExample = ("Courier", 12, "bold")
@@ -55,14 +55,12 @@ class AdminPanel:
 
     def addEmployer(self):
         app = addEmp(None, self.emp)
-        app.title = "Add employer"
         app.mainloop()
         self.sheet.set_sheet_data([list(x) for x in self.emp.showEmployers()])
         self.frame.update()
 
     def addPatient(self):
-        app = addPatient(None, self.pat)
-        app.title = "Add Patient"
+        app = addPatient(None, self.pat,[list(x) for x in self.emp.showEmployers()])
         app.mainloop()
 
     def deleteEmployer(self):
@@ -85,7 +83,6 @@ class AdminPanel:
             messagebox.showerror("Error", "Select Employer to delete")
 
     def refreshData(self,event):
-        print('click')
         #self.sheet.set_sheet_data( [list(x) for x in self.emp.showEmployers()])
         self.showEmployer()
         #self.frame.after(500,self.refreshData)
@@ -243,37 +240,49 @@ class AdminPanel:
 
 
 class addPatient(tk.Tk):
-    def __init__(self, parrent, db_):
+
+    def __init__(self, parrent, db_,emp_list):
         tk.Tk.__init__(self, parrent)
         self.parrent = parrent
+        self.emp_list = emp_list
         self.frame = tk.Frame(self)
-        self.emp = db_
+        self.fontExample = ("Courier", 12, "bold")
+        self.pat = db_
         self.form_()
 
     def __del__(self):
         print('bye')
+
+    def confirm(self, pat_name, pat_last, vdate, pat_doctor_id):
+        print( pat_name.get(), pat_last.get(), vdate.get_date().strftime('%Y-%m-%d'), self.emp_list[pat_doctor_id.current()])
+        self.quit()
+        self.destroy()
 
     def form_(self):
         self.edit_info = tk.LabelFrame(self)
         self.lName = tk.StringVar(self.edit_info)
         self.fName = tk.StringVar(self.edit_info)
 
-        self.fnameLabel = tk.Label(self.edit_info, text='First name').grid(row=0, column=0, ipadx=10, ipady=2)
-        self.fnameEntry = tk.Entry(self.edit_info, textvariable=self.fName)
+        self.fnameLabel = tk.Label(self.edit_info, text='First name', font = self.fontExample).grid(row=0, column=0, ipadx=10, ipady=2)
+        self.fnameEntry = tk.Entry(self.edit_info, textvariable=self.fName, font = self.fontExample)
         self.fnameEntry.grid(row=0, column=1, ipadx=10, ipady=2)
 
-        self.lnameLabel = tk.Label(self.edit_info, text='Last name').grid(row=1, column=0)
-        self.lnameEntry = tk.Entry(self.edit_info, textvariable=self.lName)
+        self.lnameLabel = tk.Label(self.edit_info, text='Last name', font = self.fontExample).grid(row=1, column=0)
+        self.lnameEntry = tk.Entry(self.edit_info, textvariable=self.lName, font = self.fontExample)
         self.lnameEntry.grid(row=1, column=1)
 
-        self.VisitDateLabel = tk.Label(self.edit_info, text='Visit date').grid(row=2, column=0)
-        self.vdateEntry = DateEntry(self.edit_info, date_pattern='dd/MM/yyyy')
+        self.VisitDateLabel = tk.Label(self.edit_info, text='Visit date', font = self.fontExample).grid(row=2, column=0)
+        self.vdateEntry = DateEntry(self.edit_info, date_pattern='dd/MM/yyyy', font = self.fontExample)
         self.vdateEntry.grid(row=2, column=1)
 
+        self.doctorLabels = tk.Label(self.edit_info, text='Select doctor', font = self.fontExample).grid(row=3, column=0)
+        self.docktors = ttk.Combobox(self.edit_info, values = [(x[1] + ' ' + x[2]) for x in self.emp_list]
+                                     , font=self.fontExample)
+        self.docktors.grid(row = 3, column = 1)
         self.edit_info.grid(row=1, column=0)
 
-        self.validate = partial(self.confirm, self.fName, self.lName, self.bdateEntry, self.SdateEntry, self.img_)
-        self.emp_edit_confirm = tk.Button(self, text='Confirm change', command=self.validate).grid(row=2, column=0)
+        self.validate = partial(self.confirm, self.fName, self.lName, self.vdateEntry, self.docktors )
+        self.emp_edit_confirm = tk.Button(self, text='Confirm change', command=self.validate, font = self.fontExample).grid(row=2, column=0)
 
 class addEmp(tk.Tk):
     def __init__(self, parrent, db_):
@@ -335,68 +344,6 @@ class addEmp(tk.Tk):
         self.lnameEntry.grid(row=1, column=1)
 
         self.BDateLabel = tk.Label(self.edit_info, text='Birth date').grid(row=2, column=0)
-        self.bdateEntry = DateEntry(self.edit_info, date_pattern='dd/MM/yyyy')
-        self.bdateEntry.grid(row=2, column=1)
-        self.SDateLabel = tk.Label(self.edit_info, text='Start date').grid(row=3, column=0)
-        self.SdateEntry = DateEntry(self.edit_info, date_pattern='dd/MM/yyyy')
-        self.SdateEntry.grid(row=3, column=1)
-        self.edit_info.grid(row=1, column=0)
-
-        self.validate = partial(self.confirm, self.fName, self.lName, self.bdateEntry, self.SdateEntry, self.img_)
-        self.emp_edit_confirm = tk.Button(self, text='Confirm change', command=self.validate).grid(row=2, column=0)
-
-
-class AddPatient(tk.Tk):
-    def __init__(self, parrent, db_):
-        tk.Tk.__init__(self, parrent)
-        self.parrent = parrent
-        self.frame = tk.Frame(self)
-        self.emp = db_
-        self.form_()
-
-
-    def __del__(self):
-        print('bye')
-
-    def getPhoto(self):
-        file_name = fd.askopenfilenames()
-        self.img_['data'] = convertToPNG(file_name[0])
-        print(self.img_['data'])
-        return convertToPNG(file_name[0])
-
-    def confirm(self, emp_name, emp_last, bdateEntry, sdateEntry, img_):
-        if self.img_["data"] != '':
-
-            self.emp.addEmployer(
-                                 emp_name.get(),  # imie
-                                 emp_last.get(),  # nazwisko
-                                 bdateEntry.get_date().strftime('%Y-%m-%d'),  # urodziny
-                                 sdateEntry.get_date().strftime('%Y-%m-%d'), # data zatrudnienia
-                                  self.img_["data"].decode('utf-8')
-                                 )
-        else:
-            self.emp.addEmployer(emp_name.get(),  # imie
-                                 emp_last.get(),  # nazwisko
-                                 bdateEntry.get_date().strftime('%Y-%m-%d'),  # urodziny
-                                 sdateEntry.get_date().strftime('%Y-%m-%d')
-                                 )
-        self.quit()
-        self.destroy()
-
-    def form_(self):
-        self.edit_info = tk.LabelFrame(self) ###########
-
-        self.lName = tk.StringVar(self.edit_info)
-        self.fName = tk.StringVar(self.edit_info)
-        self.fnameLabel = tk.Label(self.edit_info, text='First name').grid(row=0, column=0, ipadx=10, ipady=2)
-        self.fnameEntry = tk.Entry(self.edit_info, textvariable=self.fName)
-        self.fnameEntry.grid(row=0, column=1, ipadx=10, ipady=2)
-
-        self.lnameLabel = tk.Label(self.edit_info, text='Last name').grid(row=1, column=0)
-        self.lnameEntry = tk.Entry(self.edit_info, textvariable=self.lName)
-        self.lnameEntry.grid(row=1, column=1)
-
-        self.BDateLabel = tk.Label(self.edit_info, text='Visti date').grid(row=2, column=0)
         self.bdateEntry = DateEntry(self.edit_info, date_pattern='dd/MM/yyyy')
         self.bdateEntry.grid(row=2, column=1)
         self.SDateLabel = tk.Label(self.edit_info, text='Start date').grid(row=3, column=0)

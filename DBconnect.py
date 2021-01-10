@@ -8,7 +8,6 @@ def readConfig( path = 'config.ini'):
     config.read(path)
     return config[config.sections()[0]]
 
-
 class ConnectDB:
     def __init__(self):
         self.configData = readConfig()
@@ -24,7 +23,7 @@ class ConnectDB:
             record = self.cursor.fetchone()
             print("You are connected to - ", record, "\n")
         except (Exception, psycopg2.Error) as error:
-            print("Error while connecting to PostgreSQL", error)
+            messagebox.showerror("Error while connecting to PostgreSQL", error)
 
     def __del__(self):
         if self.connection:
@@ -38,29 +37,33 @@ class ConnectDB:
     def Connection(self):
         return self.connection
 
-class Patient(ConnectDB):
+class Patient:
 
+    def __init__(self, cursor):
+        self.cursor = cursor
 
     def showAllPatients(self):
-        super().Cursor().execute('''SELECT * FROM public."Patients"''')
-        return super().Cursor().fetchall()
+        self.cursor.execute('''SELECT * FROM public."Patients"''')
+        return self.cursor.fetchall()
 
     def showDoctorPatients(self, id):
-        super().Cursor().execute('''SELECT * FROM public."Patients" where doctor_id = \'%s\'
+        self.cursor.execute('''SELECT * FROM public."Patients" where doctor_id = \'%s\'
         '''%(id))
-        return super().Cursor().fetchall()
+        return self.cursor.fetchall()
+
+    def addPatient(self,):
+        pass
 
 
-class admins(ConnectDB):
+class admins:
 
-    def close(self):
-        if super().Connection():
-             super().Cursor().close()
-             super().Connection().close()
-             print("PostgreSQL connection is closed")
+    def __init__(self, cursor, connection):
+        self.cursor = cursor
+        self.connection = connection
+
     def showAdmins(self):
-        super().Cursor().execute('''SELECT * FROM public."Admins"''')
-        return super().Cursor().fetchall()
+        self.cursor.execute('''SELECT * FROM public."Admins"''')
+        return self.cursor.fetchall()
 
     def addAdmin(self,fname,lname,login,password):
         addQuery = '''
@@ -68,38 +71,43 @@ class admins(ConnectDB):
                    (username, password,first_name, last_name) 
                    values (\'%s\',\'%s\',\'%s\',\'%s\');
                ''' % (login,password,fname,lname)
-        super().Cursor().execute(addQuery)
-        super().Connection().commit()
+        self.cursor.execute(addQuery)
+        self.connection.commit()
 
     def Login(self, login, password):
         if '--' in login or '--' in password:
             return []
         try:
-            super().Cursor().execute('''SELECT * FROM public."Admins" where username = \'%s\' and password = \'%s\';'''
+            self.cursor.execute('''SELECT * FROM public."Admins" where username = \'%s\' and password = \'%s\';'''
                                  %(login,password))
         except Exception as ex:
             return []
-        res = super().Cursor().fetchall()
+        res = self.cursor.fetchall()
         if res != []:
             return res[0][2:]
         else : return []
 
 class Employers(ConnectDB):
+
+    def __init__(self, cursor, conection):
+        self.cursor = cursor
+        self.connection = conection
+
     def showEmployers(self):
-        super().Cursor().execute('''SELECT id, first_name, last_name, birth_date, start_date, salary FROM public."Employers" ORDER BY id''')
-        return super().Cursor().fetchall()
+        self.cursor.execute('''SELECT id, first_name, last_name, birth_date, start_date, salary FROM public."Employers" ORDER BY id''')
+        return self.cursor.fetchall()
 
     def getEmployerPhoto(self, id):
-        super().Cursor().execute(
+        self.cursor.execute(
             '''SELECT encode(photo::bytea, 'base64') FROM public."Employers" where id = %s''' % (id))
-        self.photo = super().Cursor().fetchall()[0][0]
+        self.photo = self.cursor.fetchall()[0][0]
         return self.photo
 
     def getEmployerData(self,id):
-        super().Cursor().execute(
+        self.cursor.execute(
             '''SELECT id, first_name, last_name, birth_date, start_date, encode(photo::bytea, 'base64'), salary
             FROM public."Employers" where id = %s''' % (id))
-        return super().Cursor().fetchall()[0]
+        return self.cursor.fetchall()[0]
 
     def count(self):
         countQuery = '''select id from public."Employers" ORDER BY id DESC LIMIT 1'''

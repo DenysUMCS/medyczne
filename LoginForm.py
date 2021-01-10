@@ -5,9 +5,7 @@ import AdminPanel as ap
 from tkinter import messagebox
 import base64
 
-x = DBconnect.Patient()
-dtr = x.showDoctorPatients(1)[0][3]
-print( dtr.lower.strftime('%H:%M'),'-',  dtr.upper.strftime('%H:%M'))
+x = DBconnect.ConnectDB()
 
 def imgToBase64(path):
     image = open(path, 'rb')
@@ -18,7 +16,7 @@ def imgToBase64(path):
 
 class LoginForm:
     def __init__(self):
-        self.database = DBconnect.admins()
+        self.database = DBconnect.admins(x.Cursor(),x.Connection())
         self.root = tk.Tk()
         self.form()
 
@@ -37,8 +35,7 @@ class LoginForm:
         if res != [] or username.get() == '':
             self.root.withdraw()
             if res == [] : res =['Denys', 'Chvyr']
-            self.database.close()
-            adminpanel = ap.AdminPanel(res[0], res[1])
+            adminpanel = ap.AdminPanel(res[0], res[1], x)
             self.root.quit()
 
             #adminpanel.mainloop()
