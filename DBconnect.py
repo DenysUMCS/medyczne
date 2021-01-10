@@ -59,8 +59,8 @@ class Patient:
             (first_name, last_name, visit_date, time, phone, doctor_id)
             values(\'%s\', \'%s\', \'%s\', \'%s\', \'%s\', %s)
         '''%(first_name, last_name, visit_date, time, phone, doctor_id)
-        #self.cursor.execute(insertquery)
-        #self.connection.commit()
+        self.cursor.execute(insertquery)
+        self.connection.commit()
 
 
 

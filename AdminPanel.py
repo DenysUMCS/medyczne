@@ -10,7 +10,8 @@ import pathlib
 from tkinter import filedialog as fd
 import string
 from tkinter import ttk
-
+from datetimerange import DateTimeRange
+import datetime
 
 def imgToBase64(path):
     image = open(path, 'rb')
@@ -51,6 +52,7 @@ class AdminPanel:
                                            icon='question')
         if MsgBox == 'yes':
             del self.emp
+            self.frame.destroy()
             self.frame.quit()
 
     def addEmployer(self):
@@ -255,7 +257,7 @@ class addPatient(tk.Tk):
 
     def confirm(self, pat_name, pat_last, vdate, pat_doctor_id):
         print(self.pat.showDoctorPatients(1))
-        self.pat.addPatient(pat_name.get(), pat_last.get(), vdate.get_date().strftime('%Y-%m-%d'),'["2010-01-01 14:30:00","2010-01-01 15:30:00")', 2)#self.emp_list[pat_doctor_id.current()][0])
+        self.pat.addPatient(pat_name.get(), pat_last.get(), vdate.get_date().strftime('%Y-%m-%d'),'["2010-01-01 14:30:00","2010-01-01 15:30:00")', self.emp_list[pat_doctor_id.current()][0])
         self.quit()
         self.destroy()
 
@@ -280,6 +282,12 @@ class addPatient(tk.Tk):
         self.docktors = ttk.Combobox(self.edit_info, values = [(x[1] + ' ' + x[2]) for x in self.emp_list]
                                      , font=self.fontExample)
         self.docktors.grid(row = 3, column = 1)
+        self.doctorLabels = tk.Label(self.edit_info, text='Select time', font=self.fontExample).grid(row=4, column=0)
+        timerange = DateTimeRange("2015-03-22T9:00:00+0900", "2015-03-22T17:10:00+0900")
+        self.docktors = ttk.Combobox(self.edit_info, values=[t.strftime('%H:%M') for t in timerange.range(datetime.timedelta(hours = 1))]
+                                     , font=self.fontExample)
+        self.docktors.grid(row=4, column=1)
+
         self.edit_info.grid(row=1, column=0)
 
         self.validate = partial(self.confirm, self.fName, self.lName, self.vdateEntry, self.docktors )

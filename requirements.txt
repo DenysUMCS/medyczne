@@ -1,7 +1,14 @@
 Babel==2.9.0
+chardet==4.0.0
+DateTimeRange==1.0.0
+mbstrdecoder==1.0.1
 Pillow==8.1.0
 psycopg2==2.8.6
+python-dateutil==2.8.1
 pytz==2020.5
+six==1.15.0
 tk==0.1.0
 tkcalendar==1.6.1
+tks==0.2.1
 tksheet==4.9.96
+typepy==1.1.2
