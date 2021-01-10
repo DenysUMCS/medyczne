@@ -48,7 +48,7 @@ class Patient(ConnectDB):
     def showDoctorPatients(self, id):
         super().Cursor().execute('''SELECT * FROM public."Patients" where doctor_id = \'%s\'
         '''%(id))
-        return super().Cursor().fetchall()[0]
+        return super().Cursor().fetchall()
 
 
 class admins(ConnectDB):

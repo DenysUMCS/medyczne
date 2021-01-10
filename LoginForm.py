@@ -6,8 +6,8 @@ from tkinter import messagebox
 import base64
 
 x = DBconnect.Patient()
-for i in x.showDoctorPatients(1):
-    print(type(i), i)
+dtr = x.showDoctorPatients(1)[0][3]
+print( dtr.lower.strftime('%H:%M'),'-',  dtr.upper.strftime('%H:%M'))
 
 def imgToBase64(path):
     image = open(path, 'rb')

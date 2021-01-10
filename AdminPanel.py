@@ -11,6 +11,7 @@ from tkinter import filedialog as fd
 import string
 
 
+
 def imgToBase64(path):
     image = open(path, 'rb')
     image_read = image.read()
@@ -28,10 +29,9 @@ def convertToPNG(path):
 
 class AdminPanel:
 
-
-
     def __init__(self, fname, lname):
         self.emp = db.Employers()
+        self.pat = db.Patient()
         self.prev = []
         self.idx = -1
         self.frame = tk.Tk()  # tk.Frame(self.root)
@@ -40,6 +40,8 @@ class AdminPanel:
         self.frame.title('MedLab Admin Panel (%s %s)' % (fname, lname))
         self.form()
         self.frame.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.lam = lambda x: [x[0], x[1], x[2].strftime('%d-%b-%Y'),
+                              '%s - %s' % (x[3].lower.strftime('%H:%M'), x[3].upper.strftime('%H:%M')), x[4]]
         self.frame.mainloop()
 
     def on_closing(self):
@@ -90,6 +92,11 @@ class AdminPanel:
             self.fnameEntry.insert(0, self.emp_data[1])
             self.bdateEntry.set_date(self.emp_data[3])
             self.SdateEntry.set_date(self.emp_data[4])
+            self.pattients = [self.lam(x) for x in self.pat.showDoctorPatients(self.idx)]
+            for i in self.pattients:
+                i.insert(2,self.emp_data[1] + ' ' + self.emp_data[2])
+            self.sheet_pattient.set_sheet_data(self.pattients)
+            self.frame.update()
         self.prev = selected
 
     def getPhoto(self):
@@ -173,7 +180,7 @@ class AdminPanel:
 
         self.f_top.pack(side=tk.TOP, fill="both", expand="yes")
         self.sheetEmpHeaderList = ['ID', 'Employer First Name', 'Employer Last Name', 'Birth date', 'Start date']
-        self.sheetPattientHeaderList = ['First Name', 'Last Name', 'Doctor', 'Visit date', 'Time']
+        self.sheetPattientHeaderList = ['First Name', 'Last Name', 'Doctor', 'Visit date', 'Time', 'Phone']
         self.sheet.headers([f'{c}' for c in self.sheetEmpHeaderList])
         self.sheet_pattient.headers([f'{c}' for c in self.sheetPattientHeaderList])
         self.sheet_bind_tuple = ("single_select",  # "single_select" or "toggle_select"
