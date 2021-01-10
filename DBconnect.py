@@ -86,7 +86,7 @@ class admins(ConnectDB):
 
 class Employers(ConnectDB):
     def showEmployers(self):
-        super().Cursor().execute('''SELECT id, first_name, last_name, birth_date, start_date FROM public."Employers" ORDER BY id''')
+        super().Cursor().execute('''SELECT id, first_name, last_name, birth_date, start_date, salary FROM public."Employers" ORDER BY id''')
         return super().Cursor().fetchall()
 
     def getEmployerPhoto(self, id):
@@ -97,7 +97,7 @@ class Employers(ConnectDB):
 
     def getEmployerData(self,id):
         super().Cursor().execute(
-            '''SELECT id, first_name, last_name, birth_date, start_date, encode(photo::bytea, 'base64') 
+            '''SELECT id, first_name, last_name, birth_date, start_date, encode(photo::bytea, 'base64'), salary
             FROM public."Employers" where id = %s''' % (id))
         return super().Cursor().fetchall()[0]
 
@@ -120,12 +120,12 @@ class Employers(ConnectDB):
         self.cursor.execute(InsertQuery)
         self.connection.commit()
 
-    def updateEmployer(self,id,fn, ln, bd, sd, photo):
+    def updateEmployer(self,id,fn, ln, bd, sd, photo, salary):
         updateQuery = '''
             update public."Employers" 
-            set first_name = \'%s\', last_name = \'%s\', birth_date = \'%s\', start_date = \'%s\', photo = \'%s\'
+            set first_name = \'%s\', last_name = \'%s\', birth_date = \'%s\', start_date = \'%s\', photo = \'%s\', salary =\'%s\'
             where id = %s;
-        '''%(fn, ln, bd, sd, photo, id)
+        '''%(fn, ln, bd, sd, photo, salary, id)
         self.cursor.execute(updateQuery)
         self.connection.commit()
 

@@ -92,6 +92,8 @@ class AdminPanel:
             self.fnameEntry.insert(0, self.emp_data[1])
             self.bdateEntry.set_date(self.emp_data[3])
             self.SdateEntry.set_date(self.emp_data[4])
+            self.SalaryEntry.delete(0, tk.END)
+            self.SalaryEntry.insert(0, self.emp_data[6])
             self.pattients = [self.lam(x) for x in self.pat.showDoctorPatients(self.idx)]
             for i in self.pattients:
                 i.insert(2,self.emp_data[1] + ' ' + self.emp_data[2])
@@ -105,10 +107,13 @@ class AdminPanel:
         print(self.img_['data'])
         return convertToPNG(file_name[0])
 
-    def confirm(self, id, emp_name, emp_last, bdateEntry, sdateEntry):
+    def confirm(self, id, emp_name, emp_last, bdateEntry, sdateEntry, salary):
         try:
             self.id = int(self.sheet.get_row_data( list(self.sheet.get_selected_cells())[0][0])[0])
         except TypeError:
+            messagebox.showerror("Error", "Select Employer to show")
+            return
+        except IndexError:
             messagebox.showerror("Error", "Select Employer to show")
             return
         self.emp.updateEmployer( self.id,
@@ -116,7 +121,8 @@ class AdminPanel:
                              emp_last.get(),  # nazwisko
                              bdateEntry.get_date().strftime('%Y-%m-%d'),  # urodziny
                              sdateEntry.get_date().strftime('%Y-%m-%d'), # data zatrudnienia
-                             self.img_["data"].decode('utf-8')
+                             self.img_["data"].decode('utf-8'),
+                             salary.get()
                              )
         self.sheet.set_sheet_data([list(x) for x in self.emp.showEmployers()])
         self.frame.update()
@@ -147,9 +153,18 @@ class AdminPanel:
         self.SDateLabel = tk.Label(self.edit_info, text='Start date').grid(row=3, column=0)
         self.SdateEntry = DateEntry(self.edit_info, date_pattern='dd/MM/yyyy')
         self.SdateEntry.grid(row=3, column=1)
+
+        self.SalaryLabel = tk.Label(self.edit_info, text='Salary').grid(row=4, column=0)
+        self.SalaryEntry = tk.Entry(self.edit_info)
+        self.SalaryEntry.grid(row=4, column=1)
+        '''
+        self.SDateLabel = tk.Label(self.edit_info, text='Start date').grid(row=3, column=0)
+        self.SdateEntry = DateEntry(self.edit_info, date_pattern='dd/MM/yyyy')
+        self.SdateEntry.grid(row=3, column=1)
+        '''
         self.edit_info.grid(row = 1, column = 0)
 
-        self.validate = partial(self.confirm, self.idx, self.fName, self.lName, self.bdateEntry, self.SdateEntry)
+        self.validate = partial(self.confirm, self.idx, self.fName, self.lName, self.bdateEntry, self.SdateEntry, self.SalaryEntry)
 
         self.emp_edit_confirm = tk.Button(self.f_emp, text='Confirm change', command=self.validate).grid(row = 2, column = 0)
 
@@ -179,7 +194,7 @@ class AdminPanel:
         self.f_emp.pack(side=tk.RIGHT, fill="both")
 
         self.f_top.pack(side=tk.TOP, fill="both", expand="yes")
-        self.sheetEmpHeaderList = ['ID', 'Employer First Name', 'Employer Last Name', 'Birth date', 'Start date']
+        self.sheetEmpHeaderList = ['ID', 'Employer First Name', 'Employer Last Name', 'Birth date', 'Start date', 'Salary']
         self.sheetPattientHeaderList = ['First Name', 'Last Name', 'Doctor', 'Visit date', 'Time', 'Phone']
         self.sheet.headers([f'{c}' for c in self.sheetEmpHeaderList])
         self.sheet_pattient.headers([f'{c}' for c in self.sheetPattientHeaderList])
