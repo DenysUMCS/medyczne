@@ -1,7 +1,7 @@
 import psycopg2
 import configparser
 import pathlib
-
+from tkinter import messagebox
 
 def readConfig( path = 'config.ini'):
     config = configparser.ConfigParser()
@@ -72,8 +72,13 @@ class admins(ConnectDB):
         super().Connection().commit()
 
     def Login(self, login, password):
-        super().Cursor().execute('''SELECT * FROM public."Admins" where username = \'%s\' and password = \'%s\';'''
+        if '--' in login or '--' in password:
+            return []
+        try:
+            super().Cursor().execute('''SELECT * FROM public."Admins" where username = \'%s\' and password = \'%s\';'''
                                  %(login,password))
+        except Exception as ex:
+            return []
         res = super().Cursor().fetchall()
         if res != []:
             return res[0][2:]

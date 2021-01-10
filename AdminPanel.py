@@ -28,9 +28,10 @@ def convertToPNG(path):
 
 class AdminPanel:
 
-    emp = db.Employers()
+
 
     def __init__(self, fname, lname):
+        self.emp = db.Employers()
         self.prev = []
         self.idx = -1
         self.frame = tk.Tk()  # tk.Frame(self.root)
@@ -38,7 +39,16 @@ class AdminPanel:
         self.sheet.hide("row_index")
         self.frame.title('MedLab Admin Panel (%s %s)' % (fname, lname))
         self.form()
+        self.frame.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.frame.mainloop()
+
+    def on_closing(self):
+        MsgBox = tk.messagebox.askquestion('Close program',
+                                           'Are you sure you want to exit',
+                                           icon='question')
+        if MsgBox == 'yes':
+            del self.emp
+            self.frame.quit()
 
     def addEmployer(self):
         app = addEmp(None, self.emp)
