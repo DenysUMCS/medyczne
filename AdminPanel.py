@@ -31,7 +31,7 @@ class AdminPanel:
 
     def __init__(self, fname, lname, db_class):
         self.emp = db.Employers(db_class.Cursor(), db_class.Connection())
-        self.pat = db.Patient(db_class.Cursor())
+        self.pat = db.Patient(db_class.Cursor(), db_class.Connection())
         self.prev = []
         self.idx = -1
         self.fontExample = ("Courier", 12, "bold")
@@ -254,7 +254,8 @@ class addPatient(tk.Tk):
         print('bye')
 
     def confirm(self, pat_name, pat_last, vdate, pat_doctor_id):
-        print( pat_name.get(), pat_last.get(), vdate.get_date().strftime('%Y-%m-%d'), self.emp_list[pat_doctor_id.current()])
+        print(self.pat.showDoctorPatients(1))
+        self.pat.addPatient(pat_name.get(), pat_last.get(), vdate.get_date().strftime('%Y-%m-%d'),'["2010-01-01 14:30:00","2010-01-01 15:30:00")', 2)#self.emp_list[pat_doctor_id.current()][0])
         self.quit()
         self.destroy()
 

@@ -39,8 +39,9 @@ class ConnectDB:
 
 class Patient:
 
-    def __init__(self, cursor):
+    def __init__(self, cursor, connection):
         self.cursor = cursor
+        self.connection = connection
 
     def showAllPatients(self):
         self.cursor.execute('''SELECT * FROM public."Patients"''')
@@ -51,8 +52,16 @@ class Patient:
         '''%(id))
         return self.cursor.fetchall()
 
-    def addPatient(self,):
-        pass
+    def addPatient(self, first_name, last_name, visit_date, time, doctor_id, phone = '+48576382402'):
+        print(visit_date, time,)
+        insertquery = '''
+            insert into public."Patients" 
+            (first_name, last_name, visit_date, time, phone, doctor_id)
+            values(\'%s\', \'%s\', \'%s\', \'%s\', \'%s\', %s)
+        '''%(first_name, last_name, visit_date, time, phone, doctor_id)
+        #self.cursor.execute(insertquery)
+        #self.connection.commit()
+
 
 
 class admins:
